@@ -69,7 +69,9 @@ def _hook_text_encoder_file() -> None:
     # where the MOSS-Image guess looks for its text encoder (model.clip_target)
     original = loader.replace_state_dict
 
-    def replace_state_dict(sd, asd, guess, path):
+    def replace_state_dict(sd, asd, *rest):
+        # Forge Neo calls (sd, asd, guess, path), and (sd, asd, metadata, guess, path) once its GGUF update lands
+        guess = rest[-2]
         if isinstance(guess, model.MossImage):
             try:
                 text_encoder_prefix(asd)
@@ -81,7 +83,7 @@ def _hook_text_encoder_file() -> None:
                     del sd[key]
                 sd.update({f"{prefix}{k}": v for k, v in asd.items()})
                 return sd
-        return original(sd, asd, guess, path)
+        return original(sd, asd, *rest)
 
     loader.replace_state_dict = replace_state_dict
 
