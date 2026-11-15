@@ -4,7 +4,7 @@
 
 [![Forge Neo](https://img.shields.io/badge/Forge-Neo-blue)](https://github.com/Haoming02/sd-webui-forge-classic/tree/neo)
 [![Gradio](https://img.shields.io/badge/Gradio-4.40.0-orange)](https://gradio.app/)
-[![Version](https://img.shields.io/badge/Version-0.1.2-brightgreen)](https://github.com/eduardoabreu81/moss-image-forge-neo)
+[![Version](https://img.shields.io/badge/Version-0.1.8-brightgreen)](https://github.com/eduardoabreu81/moss-image-forge-neo)
 [![License](https://img.shields.io/badge/License-AGPL--3.0-green.svg)](LICENSE)
 
 > **Extension for [Stable Diffusion WebUI Forge - Neo](https://github.com/Haoming02/sd-webui-forge-classic/tree/neo)**
@@ -30,6 +30,13 @@ Generate with **[MOSS-Image](https://huggingface.co/OpenMOSS-Team/MOSS-Image-SFT
 ---
 
 ## 🆕 What's New
+
+### v0.1.8 - LoRAs Kept in Their Boxes
+
+- **A LoRA tagged inside a box of a layout acts only there** - a hips slider on one woman and an age slider on the other, and each one changes only hers; a LoRA in the scene caption or after the layout still acts on the whole picture ([details](#-loras-per-box))
+- Styles too: an anime LoRA in one box and a realism LoRA in another, side by side in one picture
+- Works with this extension's backend and with Forge Neo's built-in MOSS-Image, also with sd-dynamic-prompts on
+- [Regional Boxes](https://github.com/eduardoabreu81/sd-regional-boxes-neo) 0.4.0 or newer puts a LoRA in a box with its **+ LoRA** button
 
 ### v0.1.7 - INT4 Setting Moves to Its Own Extension
 
@@ -101,6 +108,24 @@ Generate with **[MOSS-Image](https://huggingface.co/OpenMOSS-Team/MOSS-Image-SFT
 - Works with the Base and the SFT model; give boxes that make sense in the scene - things placed where they could not stand tend to follow the caption instead
 - Rather draw than type? [Regional Boxes](https://github.com/eduardoabreu81/sd-regional-boxes-neo) writes the layout from boxes drawn with the mouse
 - Works with sd-dynamic-prompts on: the infotext shows the layout without its `{ }`, but the model gets it whole
+
+### 🎯 LoRAs per Box
+
+<p align="center"><img src=".github/images/regional_lora.jpg" alt="Two young women in jeans and t-shirts, same seed, with their faces enlarged below: with no LoRA; with a hips slider and an age slider after the layout, where both women grow old and wide-hipped; and with the hips slider in the left woman's box and the age slider in the right woman's, in one pass and one pass per LoRA, where only the left one gets wider hips and only the right one grows old" width="900"></p>
+<p align="center"><sub>Hips slider at 3 in the left box, age slider at 3 in the right box - SFT with its 8-step DMD, RTX 2070</sub></p>
+
+- Put a `<lora:...>` tag in an item's `caption` and that LoRA works only inside the item's `bbox` and on the item's own words; tags in `summary.caption` or after the layout still act on the whole picture
+- `{"label":"character","caption":"a red fox sitting <lora:my_style:1>","bbox":[-300,-480,400,-40]}` - the LoRA's trigger words can go in the same caption
+- Different LoRAs in different boxes work together; the same LoRA in two boxes covers both
+- The infotext says which LoRA stayed in which box, for example *MOSS regional LoRA: my_style: box 1*
+- Works with **[MOSS-Image] Backend** set either way, and with sd-dynamic-prompts on
+- The edges of a box are softened, so the picture stays one picture: some light or color of a LoRA can reach a little past its box
+- Plain LoRAs only: LoKr, LoHa, DoRA and the like keep acting on the whole picture, and the console says so. Off with MOSS Image Edit's reference pictures on Forge's built-in backend, and in ADetailer's crops
+- **[MOSS-Image] How a LoRA is kept in its box** has two ways:
+  - *One pass per LoRA* (the default): at every step the model runs once without the LoRAs and once more for each LoRA, with that LoRA on the whole picture, and each result is taken inside its own boxes. Each box gets its LoRA at full strength, and nothing of it reaches the other boxes - styles included: a flat anime LoRA at 2 in one woman's box made her anime while the other woman and the park stayed a photo. In the picture above the hips widened 107 px against 8 px for the other woman. Slower: about 58 s per picture with one LoRA and 74 s with two, against 42 s, on an RTX 2070 at 1024x1024 in 8 steps
+  - *In one pass*: as fast as the LoRAs on the whole picture, with the LoRA taken away outside its box inside the model. It keeps the other boxes as they are, but a LoRA comes out weaker in its own box (the hips above: 47 px), and a style LoRA at a high weight spreads over the whole picture
+- **[MOSS-Image] Words a LoRA kept in its box acts on** applies to *In one pass*: *The box's own words* (the default) keeps the rest of the picture closest to how it is without the LoRA; *The whole prompt* gives the box more of the LoRA, and lets more of it reach the rest of the picture
+- Turn it off under **Settings → Stable Diffusion → MOSS-Image → [MOSS-Image] Keep a LoRA tagged inside a layout box in that box**
 
 ### 🔁 Image-to-Image
 
@@ -215,6 +240,7 @@ The **moss** preset sets these values; change them on the **MOSS** page of **Set
 - **[akhaliq](https://huggingface.co/akhaliq/MOSS-Image-SFT-4-steps)** - the 4-step LoRA
 - **[chinoll](https://huggingface.co/chinoll/Moss-Image-Edit)** - the MOSS Image Edit LoRA and its [reference code](https://github.com/Chenkin-x/Moss-Image-Edit)
 - **[Transformers](https://github.com/huggingface/transformers)** by Hugging Face - the Qwen3.5 reference
+- **[SillySilk](https://github.com/SillySilk/Forge-Neo-Silk-Custom)** - MOSS Regional LoRA, the approach the LoRAs per box follow ([discussion](https://github.com/Haoming02/sd-webui-forge-classic/discussions/1645))
 
 The MOSS-Image weights are released by the OpenMOSS Team under the Apache License 2.0; this extension does not include them.
 
