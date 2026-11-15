@@ -23,6 +23,62 @@ BACKEND_INFO = ("who runs MOSS-Image checkpoints: this extension, or Forge Neo's
                 "this page's); takes effect at the next generation")
 
 
+# A LoRA tagged inside one item of a layout acts only inside that item's box (regional_lora.py)
+REGIONAL_OPTION = "moss_image_regional_lora"
+REGIONAL_LABEL = "[MOSS-Image] Keep a LoRA tagged inside a layout box in that box"
+REGIONAL_INFO = ("a <lora:...> in an item's caption acts only inside the item's bbox and on its words; LoRAs in the "
+                 "summary or after the layout stay global. Both backends; plain LoRAs only")
+
+
+# which words of the prompt a LoRA kept in a box acts on: only that box's caption, or the whole prompt (the picture
+# stays kept to the box either way)
+REGIONAL_TEXT_OPTION = "moss_image_regional_lora_text"
+BOX_WORDS = "The box's own words"
+WHOLE_PROMPT = "The whole prompt"
+REGIONAL_TEXT_LABEL = "[MOSS-Image] Words a LoRA kept in its box acts on"
+REGIONAL_TEXT_INFO = ("the picture stays kept to the box either way; the whole prompt gives a style LoRA more strength "
+                      "in its box, and lets more of it reach the rest of the picture")
+
+
+# how a LoRA is kept in its box: one pass of the model per LoRA, each pasted into its boxes (the default: full strength,
+# styles too, slower), or inside the model in the same pass (fast; good for LoRAs that change a shape or a thing,
+# weak for styles)
+REGIONAL_MODE_OPTION = "moss_image_regional_lora_mode"
+ONE_PASS = "In one pass"
+PER_LORA = "One pass per LoRA"
+REGIONAL_MODE_LABEL = "[MOSS-Image] How a LoRA is kept in its box"
+REGIONAL_MODE_INFO = ("one pass per LoRA: each box gets its LoRA at full strength (styles too), one more pass of the "
+                      "model per LoRA at every step; one pass: as fast as without it, good for LoRAs that change a shape or a "
+                      "thing, weak for styles")
+
+
+def regional_lora_per_lora_pass() -> bool:
+    try:
+        from modules.shared import opts
+
+        return getattr(opts, REGIONAL_MODE_OPTION, PER_LORA) == PER_LORA
+    except Exception:
+        return True
+
+
+def regional_lora_all_text() -> bool:
+    try:
+        from modules.shared import opts
+
+        return getattr(opts, REGIONAL_TEXT_OPTION, BOX_WORDS) == WHOLE_PROMPT
+    except Exception:
+        return False
+
+
+def regional_lora_enabled() -> bool:
+    try:
+        from modules.shared import opts
+
+        return bool(getattr(opts, REGIONAL_OPTION, True))
+    except Exception:  # outside Forge Neo (CPU tests), or before the options exist
+        return True
+
+
 def forge_has_built_in() -> bool:
     try:
         from huggingface_guess import model_list
@@ -87,3 +143,18 @@ def register() -> None:
     if OPTION not in shared.opts.data_labels:
         shared.opts.add_option(OPTION, OptionInfo(DEFAULT, LABEL, section=SECTION, category_id=CATEGORY,
                                                   infotext="MOSS skip").info(INFO))
+    if REGIONAL_OPTION not in shared.opts.data_labels:
+        shared.opts.add_option(REGIONAL_OPTION, OptionInfo(True, REGIONAL_LABEL, section=SECTION,
+                                                           category_id=CATEGORY).info(REGIONAL_INFO))
+    if REGIONAL_MODE_OPTION not in shared.opts.data_labels:
+        import gradio as gr
+
+        shared.opts.add_option(REGIONAL_MODE_OPTION, OptionInfo(PER_LORA, REGIONAL_MODE_LABEL, gr.Radio,
+                                                                {"choices": (PER_LORA, ONE_PASS)}, section=SECTION,
+                                                                category_id=CATEGORY).info(REGIONAL_MODE_INFO))
+    if REGIONAL_TEXT_OPTION not in shared.opts.data_labels:
+        import gradio as gr
+
+        shared.opts.add_option(REGIONAL_TEXT_OPTION, OptionInfo(BOX_WORDS, REGIONAL_TEXT_LABEL, gr.Radio,
+                                                                {"choices": (BOX_WORDS, WHOLE_PROMPT)}, section=SECTION,
+                                                                category_id=CATEGORY).info(REGIONAL_TEXT_INFO))
