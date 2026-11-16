@@ -1,3 +1,7 @@
+<p align="center">
+  <img src=".github/banner.jpg" alt="MOSS-Image for Forge Neo banner"/>
+</p>
+
 # 🖼️ MOSS-Image for Forge Neo
 
 <div align="center">
